@@ -64,7 +64,7 @@ $rabbitMqConfig = array(
 $rabbitMq = new rabbitmq(rabbitMqConfig);
 $response = $rabbitMq->getMessages();
 foreach ($response as $message) {
-    preprint(json_decode($message->body));
+    print_r(json_decode($message->body));
     $rabbitMq->ack($message->delivery_info['delivery_tag']);
 }
 ```
@@ -87,7 +87,7 @@ $rabbitMq = new rabbitmq(rabbitMqConfig);
 $response = $rabbitMq->sendDelayedMessage(array(
     'Mesaj' => 'Bu Bir Beklemeli RabbitMQ Mesajıdır.!'
 ), 60000); #Milisaniye cinsinden 
-var_export($response);
+print_r($response);
 ```
 
 2. Zamanlanarak gönderilen mesajları okumak için aşağıdaki kod bloğunu kullanabilirsiniz.
@@ -101,7 +101,7 @@ $rabbitMqConfig = array(
 $rabbitMq = new rabbitmq(rabbitMqConfig);
 $response = $rabbitMq->getMessages();
 foreach ($response as $message) {
-    preprint(json_decode($message->body));
+    print_r(json_decode($message->body));
     $this->rabbitmq->ack($message->delivery_info['delivery_tag']);
 }
 ```
