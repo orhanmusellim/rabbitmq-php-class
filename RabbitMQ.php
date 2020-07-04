@@ -16,34 +16,39 @@ class RabbitMQ {
     public $routingKey;
     public $channel;
     public $connection;
-
-    public function __construct($config) {
-        $this->host = (isset($config['host'])) ? $config['host'] : 'localhost';
+    
+    public function __construct($config){
+    	$this->host = (isset($config['host'])) ? $config['host'] : 'localhost';
         $this->port = (isset($config['port'])) ? $config['port'] : '5672';
         $this->username = (isset($config['username'])) ? $config['username'] : 'guest';
         $this->password = (isset($config['password'])) ? $config['password'] : 'guest';
         $this->queue = (isset($config['queue'])) ? $config['queue'] : 'default';
         $this->queueArgs = (isset($config['queueArgs'])) ? $config['queueArgs'] : array();
         $this->exchange = (isset($config['exchange'])) ? $config['exchange'] : 'default';
-        $this->exchangeType = (isset($config['exchangeType'])) ? $config['exchangeType'] : 'default';
+        $this->exchangeType = (isset($config['exchangeType'])) ? $config['exchangeType'] : 'direct';
         $this->routingKey = (isset($config['routingKey'])) ? $config['routingKey'] : '';
         $this->exchangeArgs = (isset($config['exchangeArgs'])) ? $config['exchangeArgs'] : array();
         $this->connection = new AMQPStreamConnection($this->host, $this->port, $this->username, $this->password);
         $this->channel = $this->connection->channel();
         $this->channel->queue_declare($this->queue, false, true, false, false, false, new AMQPTable($this->queueArgs));
         $this->channel->exchange_declare($this->exchange, $this->exchangeType, false, true, false, false, false, new AMQPTable($this->exchangeArgs));
-        $this->channel->queue_bind($this->queue, $this->exchange, $this->routingKey);
-        function shutdown($channel, $connection) {
-            $channel->close();
-            $connection->close();
-        }
-
-        register_shutdown_function('shutdown', $this->channel, $this->connection);
+        $this->channel->queue_bind($this->queue, $this->exchange, $this->routingKey);	
+        
+        $self = $this;
+        $shutdown = function () use (&$self) {
+            $self->shutdown();
+        };
+        register_shutdown_function($shutdown);
     }
-
+    
+	public function shutdown() {
+		$this->channel->close();
+		$this->connection->close();
+	}
+	
     public function __destruct() {
-        $this->channel->close();
-        $this->connection->close();
+    	$this->shutdown();
+        
     }
 
     public function sendMessage($payload) {
